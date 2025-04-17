@@ -112,7 +112,7 @@ Before you begin, ensure you have the following installed:
 
 ## 📂 Project Structure
 
-```
+```bash
 backend/
 ├── auth/ # Authentication endpoints
 │ ├── login.php
