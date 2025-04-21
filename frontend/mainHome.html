@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;"
+    />
+    <meta
       name="description"
-      content="Discover and read more books you'll love. Be part of Goodreads, the world’s largest community for readers."
+      content="Discover and read more books you'll love. Be part of Goodreads, the world's largest community for readers."
     />
     <meta
       name="keywords"
@@ -18,7 +22,7 @@
     />
     <meta
       property="og:description"
-      content="Discover and read more books you'll love. Be part of Goodreads, the world’s largest community for readers."
+      content="Discover and read more books you'll love. Be part of Goodreads, the world's largest community for readers."
     />
     <meta property="og:image" content="./assets/image/logo.png" />
     <meta property="og:url" content="https://www.goodreads.com" />
@@ -29,7 +33,7 @@
     />
     <meta
       name="twitter:description"
-      content="Discover and read more books you'll love. Be part of Goodreads, the world’s largest community for readers."
+      content="Discover and read more books you'll love. Be part of Goodreads, the world's largest community for readers."
     />
     <meta name="twitter:image" content="./assets/image/logo.png" />
     <title>Goodreads | Meet your next favorite book</title>
@@ -168,8 +172,8 @@
       <section class="promo-section">
         <h3 class="heading">Meet your next favorite book.</h3>
         <p class="sub-heading">
-          Find and read more books you’ll love. Be part of Goodreads, the
-          world’s largest community for readers like you.
+          Find and read more books you'll love. Be part of Goodreads, the
+          world's largest community for readers like you.
         </p>
       </section>
 
@@ -194,7 +198,7 @@
 
             <button
               class="button email-btn"
-              onclick="location.href='signUpWithEmail.html'"
+              onclick="location.href='./Pages/signUpWithEmail.html'"
             >
               Sign up with email
             </button>

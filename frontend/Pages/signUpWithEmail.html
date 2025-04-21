@@ -23,12 +23,13 @@
       <img src="../assets/image/logo.png" alt="" />
       <h1>Create Account</h1>
 
-      <form action="#" method="post">
+      <form id="registrationForm">
         <div class="form-group">
           <label for="name">Your name</label>
           <input
             type="text"
             id="name"
+            name="name"
             placeholder="First and last name"
             required
           />
@@ -36,7 +37,7 @@
 
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" required />
+          <input type="email" id="email" name="email" required />
         </div>
 
         <div class="form-group">
@@ -44,6 +45,7 @@
           <input
             type="password"
             id="password"
+            name="password"
             placeholder="At least 6 characters"
             required
           />
@@ -58,13 +60,13 @@
           <input type="password" id="password-confirm" required />
         </div>
 
-        <button
-          type="submit"
-          class="create-button"
-          onclick="if(document.getElementById('name').value && document.getElementById('email').value && document.getElementById('password').value.length >= 6 && document.getElementById('password').value === document.getElementById('password-confirm').value) { location.href='../mainHome.html'; } else { alert('Please fill out the form correctly.'); return false; }"
-        >
-          Create account
-        </button>
+        <div
+          id="messageContainer"
+          class="message-container"
+          style="display: none"
+        ></div>
+
+        <button type="submit" class="create-button">Create account</button>
 
         <div class="terms">
           By creating an account, you agree to the Goodreads
@@ -87,6 +89,17 @@
       <div>© 2023 Goodreads, Inc.</div>
     </footer>
 
+    <!-- Load form validation first -->
     <script src="../js/formValidation.js"></script>
+    <!-- Then load registration script -->
+    <script src="../js/hooks/registration.js"></script>
+    <script>
+      // Wait for both scripts to load
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("registrationForm")
+          .addEventListener("submit", register);
+      });
+    </script>
   </body>
 </html>

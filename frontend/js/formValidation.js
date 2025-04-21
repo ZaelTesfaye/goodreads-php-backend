@@ -1,32 +1,45 @@
-// Get form elements
-const form = document.querySelector("form");
-const nameInput = document.getElementById("name");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const passwordConfirmInput = document.getElementById("password-confirm");
+// Form validation logic
+document.addEventListener("DOMContentLoaded", () => {
+  // Get form elements
+  const form = document.getElementById("registrationForm");
+  if (!form) return; // Exit if not on a page with the registration form
 
-// Create error message elements
-function createErrorElement(id) {
-  const errorDiv = document.createElement("div");
-  errorDiv.className = "error-message";
-  errorDiv.id = id;
-  return errorDiv;
-}
+  const nameInput = document.getElementById("name");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const passwordConfirmInput = document.getElementById("password-confirm");
+  const submitButton = document.querySelector("button[type='submit']");
 
-// Add error message elements after each input
-const nameError = createErrorElement("name-error");
-const emailError = createErrorElement("email-error");
-const passwordError = createErrorElement("password-error");
-const passwordConfirmError = createErrorElement("password-confirm-error");
+  // Track if fields have been interacted with
+  const interacted = {
+    name: false,
+    email: false,
+    password: false,
+    passwordConfirm: false,
+  };
 
-nameInput.parentNode.appendChild(nameError);
-emailInput.parentNode.appendChild(emailError);
-passwordInput.parentNode.appendChild(passwordError);
-passwordConfirmInput.parentNode.appendChild(passwordConfirmError);
+  // Create error message elements
+  function createErrorElement(id) {
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "error-message";
+    errorDiv.id = id;
+    return errorDiv;
+  }
 
-// Add CSS for error messages
-const style = document.createElement("style");
-style.textContent = `
+  // Add error message elements after each input
+  const nameError = createErrorElement("name-error");
+  const emailError = createErrorElement("email-error");
+  const passwordError = createErrorElement("password-error");
+  const passwordConfirmError = createErrorElement("password-confirm-error");
+
+  nameInput.parentNode.appendChild(nameError);
+  emailInput.parentNode.appendChild(emailError);
+  passwordInput.parentNode.appendChild(passwordError);
+  passwordConfirmInput.parentNode.appendChild(passwordConfirmError);
+
+  // Add CSS for error messages
+  const style = document.createElement("style");
+  style.textContent = `
     .error-message {
         color: #d32f2f;
         font-size: 12px;
@@ -41,130 +54,183 @@ style.textContent = `
     .success {
         border-color: #2e7d32 !important;
     }
-`;
-document.head.appendChild(style);
+  `;
+  document.head.appendChild(style);
 
-// Validation functions
-function validateName(name) {
-  const nameRegex = /^[a-zA-Z]+(?: [a-zA-Z]+)+$/;
-  return nameRegex.test(name.trim());
-}
-
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
-}
-
-function validatePassword(password) {
-  return password.length >= 6;
-}
-
-// Real-time validation
-nameInput.addEventListener("input", () => {
-  const name = nameInput.value;
-  if (!name) {
-    nameError.textContent = "Name is required";
-    nameInput.classList.add("error");
-    nameInput.classList.remove("success");
-  } else if (!validateName(name)) {
-    nameError.textContent = "Please enter your first and last name";
-    nameInput.classList.add("error");
-    nameInput.classList.remove("success");
-  } else {
-    nameError.textContent = "";
-    nameInput.classList.remove("error");
-    nameInput.classList.add("success");
-  }
-});
-
-emailInput.addEventListener("input", () => {
-  const email = emailInput.value;
-  if (!email) {
-    emailError.textContent = "Email is required";
-    emailInput.classList.add("error");
-    emailInput.classList.remove("success");
-  } else if (!validateEmail(email)) {
-    emailError.textContent = "Please enter a valid email address";
-    emailInput.classList.add("error");
-    emailInput.classList.remove("success");
-  } else {
-    emailError.textContent = "";
-    emailInput.classList.remove("error");
-    emailInput.classList.add("success");
-  }
-});
-
-passwordInput.addEventListener("input", () => {
-  const password = passwordInput.value;
-  if (!password) {
-    passwordError.textContent = "Password is required";
-    passwordInput.classList.add("error");
-    passwordInput.classList.remove("success");
-  } else if (!validatePassword(password)) {
-    passwordError.textContent = "Password must be at least 6 characters";
-    passwordInput.classList.add("error");
-    passwordInput.classList.remove("success");
-  } else {
-    passwordError.textContent = "";
-    passwordInput.classList.remove("error");
-    passwordInput.classList.add("success");
+  // Validation functions
+  function validateName(name) {
+    // Allow any name format with at least 2 characters
+    return name.trim().length >= 2;
   }
 
-  // Check password confirmation match if it has a value
-  if (passwordConfirmInput.value) {
-    checkPasswordsMatch();
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
   }
-});
 
-function checkPasswordsMatch() {
-  const password = passwordInput.value;
-  const passwordConfirm = passwordConfirmInput.value;
-
-  if (!passwordConfirm) {
-    passwordConfirmError.textContent = "Please confirm your password";
-    passwordConfirmInput.classList.add("error");
-    passwordConfirmInput.classList.remove("success");
-  } else if (password !== passwordConfirm) {
-    passwordConfirmError.textContent = "Passwords do not match";
-    passwordConfirmInput.classList.add("error");
-    passwordConfirmInput.classList.remove("success");
-  } else {
-    passwordConfirmError.textContent = "";
-    passwordConfirmInput.classList.remove("error");
-    passwordConfirmInput.classList.add("success");
+  function validatePassword(password) {
+    return password.length >= 6;
   }
-}
 
-passwordConfirmInput.addEventListener("input", checkPasswordsMatch);
+  // Function to update submit button state
+  function updateSubmitButton() {
+    const hasErrors = document.querySelectorAll(".error").length > 0;
+    const requiredFields = [
+      nameInput.value,
+      emailInput.value,
+      passwordInput.value,
+      passwordConfirmInput.value,
+    ];
+    const allFieldsFilled = requiredFields.every(
+      (field) => field.trim() !== ""
+    );
 
-// Form submission
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  // Trigger all validations
-  nameInput.dispatchEvent(new Event("input"));
-  emailInput.dispatchEvent(new Event("input"));
-  passwordInput.dispatchEvent(new Event("input"));
-  checkPasswordsMatch();
-
-  // Check if there are any errors
-  const hasErrors = document.querySelectorAll(".error").length > 0;
-
-  if (!hasErrors) {
-    // Create object with form data
-    const formData = {
-      name: nameInput.value.trim(),
-      email: emailInput.value.trim(),
-      password: passwordInput.value,
-    };
-
-    console.log("Form submitted successfully:", formData);
-    // Here you would typically send the data to your server
-
-    // Optional: Clear form after successful submission
-    form.reset();
-    document
-      .querySelectorAll(".success")
-      .forEach((el) => el.classList.remove("success"));
+    submitButton.disabled = hasErrors || !allFieldsFilled;
   }
+
+  // Mark a field as interacted with
+  function markInteracted(field) {
+    interacted[field] = true;
+  }
+
+  // Only validate fields that have been interacted with
+  function validateField(
+    field,
+    value,
+    validationFn,
+    errorElement,
+    inputElement
+  ) {
+    // Skip validation if the field hasn't been interacted with
+    if (!interacted[field]) return;
+
+    if (!value) {
+      errorElement.textContent = `${
+        field.charAt(0).toUpperCase() + field.slice(1)
+      } is required`;
+      inputElement.classList.add("error");
+      inputElement.classList.remove("success");
+    } else if (!validationFn(value)) {
+      switch (field) {
+        case "name":
+          errorElement.textContent = "Please enter at least 2 characters";
+          break;
+        case "email":
+          errorElement.textContent = "Please enter a valid email address";
+          break;
+        case "password":
+          errorElement.textContent = "Password must be at least 6 characters";
+          break;
+        case "passwordConfirm":
+          errorElement.textContent = "Passwords do not match";
+          break;
+      }
+      inputElement.classList.add("error");
+      inputElement.classList.remove("success");
+    } else {
+      errorElement.textContent = "";
+      inputElement.classList.remove("error");
+      inputElement.classList.add("success");
+    }
+  }
+
+  // Real-time validation
+  nameInput.addEventListener("focus", () => markInteracted("name"));
+  nameInput.addEventListener("input", () => {
+    validateField("name", nameInput.value, validateName, nameError, nameInput);
+    updateSubmitButton();
+  });
+
+  emailInput.addEventListener("focus", () => markInteracted("email"));
+  emailInput.addEventListener("input", () => {
+    validateField(
+      "email",
+      emailInput.value,
+      validateEmail,
+      emailError,
+      emailInput
+    );
+    updateSubmitButton();
+  });
+
+  passwordInput.addEventListener("focus", () => markInteracted("password"));
+  passwordInput.addEventListener("input", () => {
+    validateField(
+      "password",
+      passwordInput.value,
+      validatePassword,
+      passwordError,
+      passwordInput
+    );
+
+    // Also check password confirmation if it's been interacted with
+    if (interacted.passwordConfirm) {
+      validatePasswordMatch();
+    }
+
+    updateSubmitButton();
+  });
+
+  passwordConfirmInput.addEventListener("focus", () =>
+    markInteracted("passwordConfirm")
+  );
+
+  function validatePasswordMatch() {
+    const password = passwordInput.value;
+    const passwordConfirm = passwordConfirmInput.value;
+
+    const matchValidator = (confirm) => confirm === password;
+    validateField(
+      "passwordConfirm",
+      passwordConfirm,
+      matchValidator,
+      passwordConfirmError,
+      passwordConfirmInput
+    );
+  }
+
+  passwordConfirmInput.addEventListener("input", () => {
+    validatePasswordMatch();
+    updateSubmitButton();
+  });
+
+  // Form submission - validate all fields
+  form.addEventListener("submit", (e) => {
+    // Mark all fields as interacted with on submit
+    interacted.name = true;
+    interacted.email = true;
+    interacted.password = true;
+    interacted.passwordConfirm = true;
+
+    // Validate all fields
+    validateField("name", nameInput.value, validateName, nameError, nameInput);
+    validateField(
+      "email",
+      emailInput.value,
+      validateEmail,
+      emailError,
+      emailInput
+    );
+    validateField(
+      "password",
+      passwordInput.value,
+      validatePassword,
+      passwordError,
+      passwordInput
+    );
+    validatePasswordMatch();
+
+    updateSubmitButton();
+
+    // Let the form submission be handled by the registration.js handler
+  });
+
+  // Export validation functions for use in registration.js
+  window.formValidation = {
+    validateName,
+    validateEmail,
+    validatePassword,
+    checkPasswordsMatch: validatePasswordMatch,
+    isValid: () => document.querySelectorAll(".error").length === 0,
+  };
 });
