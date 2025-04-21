@@ -1,66 +1,78 @@
-<!-- register logic goes here -->
 <?php
-// Start session and include DB connection
-session_start();
+// Include database and utility functions
+include_once '../includes/db.php';
+include_once '../includes/utils.php';
 
-$host = 'localhost';
-$db   = 'goodreads_clone';
-$user = 'root'; // adjust if needed
-$pass = '';     // adjust if needed
-$charset = 'utf8mb4';
+// Set JSON headers
+setJsonHeaders();
 
-// Set up PDO
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-];
-
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+// Process only POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
+    echo jsonResponse(false, "Method not allowed");
+    exit;
 }
 
-// Handle POST request
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Get and sanitize form data
-    $name     = trim($_POST['name'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $bio      = trim($_POST['bio'] ?? '');
-    $profile_pic = 'default.png'; // Use default for now
+// Get request data and validate required fields
+$data = getRequestData(['name', 'email', 'password']);
 
-    // Basic validation
-    if (empty($name) || empty($email) || empty($password)) {
-        die("All required fields must be filled.");
-    }
+// The data is already sanitized by getRequestData
+$name = $data['name'];
+$email = $data['email'];
+$password = $data['password']; // Will be hashed, don't sanitize again
+$bio = $data['bio'] ?? ''; // Bio is optional will be updated later in the profile page
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Invalid email format.");
-    }
+// Validate email
+if (!validateEmail($email)) {
+    http_response_code(400);
+    echo jsonResponse(false, "Invalid email format");
+    exit;
+}
+
+try {
+    // Get database connection
+    $database = new Database();
+    $db = $database->getConnection();
 
     // Check if email already exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        die("Email already registered.");
+    $check_stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    $check_stmt->execute([$email]);
+
+    if ($check_stmt->rowCount() > 0) {
+        http_response_code(409); // Conflict
+        echo jsonResponse(false, "Email already registered");
+        exit;
     }
 
     // Hash the password
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
+    // Set defaults
+    $profile_pic = 'default.png';
+    $role_id = 2; // Regular user
+
     // Insert user into database
-    $stmt = $pdo->prepare("
+    $stmt = $db->prepare("
         INSERT INTO users (name, email, password, bio, profile_pic, role_id)
         VALUES (?, ?, ?, ?, ?, ?)
     ");
-    $role_id = 2; // Regular user
     $stmt->execute([$name, $email, $hashedPassword, $bio, $profile_pic, $role_id]);
-
-    echo "Registration successful! 🎉";
-    // You can redirect or log them in here if you want.
-} else {
-    echo "Invalid request method.";
+    
+    // Get the user ID
+    $user_id = $db->lastInsertId();
+    
+    // Start session and log user in
+    session_start();
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['user_name'] = $name;
+    $_SESSION['user_role'] = 'user';
+    
+    // Return success response
+    http_response_code(201); // Created
+    echo jsonResponse(true, "Registration successful! 🎉", ["user_id" => $user_id]);
+    
+} catch (Exception $e) {
+    http_response_code(500);
+    echo jsonResponse(false, "Registration failed: " . $e->getMessage());
 }
 ?>

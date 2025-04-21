@@ -1,4 +1,3 @@
-<!-- All handy utility functions goes here -->
 <?php
 /**
  * Utility functions for the Goodreads Clone API
@@ -8,7 +7,10 @@
  * Set headers for JSON responses
  */
 function setJsonHeaders() {
+    // Allow from any origin (dev only!)
     header("Access-Control-Allow-Origin: *");
+    // for deployment change the cors from allowing all origins to the specific frontend domain
+    // header("Access-Control-Allow-Origin: https://frontenddomain.com");
     header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
     header("Content-Type: application/json");
@@ -148,19 +150,6 @@ function getCurrentUserId() {
     
     return $_SESSION['user_id'] ?? null;
 }
-
-// Validate required fields
-// function validateRequiredFields($fields, $data) {
-//     $missing = [];
-    
-//     foreach ($fields as $field) {
-//         if (!isset($data[$field]) || empty($data[$field])) {
-//             $missing[] = $field;
-//         }
-//     }
-    
-//     return $missing;
-// }
 
 /**
  * Check if current user is an admin

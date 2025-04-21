@@ -1,28 +1,35 @@
-<!-- class based db connection logic goes here -->
- <?php
-// Database connection class
+<?php
+/**
+ * Database connection class
+ */
 class Database {
-    private $host = "localhost";
-    private $db_name = "goodreads_clone";
-    private $username = "root";
-    private $password = "";
+    private $host = 'localhost';
+    private $db_name = 'goodreads_clone';
+    private $username = 'root';
+    private $password = '';
     private $conn;
 
-    // Get database connection
+    /**
+     * Get the database connection
+     * 
+     * @return PDO The database connection
+     */
     public function getConnection() {
         $this->conn = null;
 
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4",
                 $this->username,
-                $this->password
+                $this->password,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false
+                ]
             );
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $this->conn->exec("set names utf8");
-        } catch(PDOException $e) {
-            echo "Connection Error: " . $e->getMessage();
+        } catch(PDOException $exception) {
+            throw new Exception("Database connection failed: " . $exception->getMessage());
         }
 
         return $this->conn;
