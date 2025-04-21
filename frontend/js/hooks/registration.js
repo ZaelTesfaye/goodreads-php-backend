@@ -87,7 +87,7 @@ function register(event) {
       if (data.success) {
         // Show success message
         showMessage(
-          data.message || "Registration successful! 🎉 Redirecting...",
+          data.message || "Registration successful!  Redirecting...",
           "success"
         );
 
