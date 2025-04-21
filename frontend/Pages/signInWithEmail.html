@@ -17,13 +17,39 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
       rel="stylesheet"
     />
+    <style>
+      .is-invalid {
+        border: 1px solid #dc3545 !important;
+        background-color: #fff8f8;
+      }
+      .form-group {
+        position: relative;
+      }
+      .message-container {
+        margin: 15px 0;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .message-container.error {
+        background-color: #ffebee;
+        color: #d32f2f;
+        border: 1px solid #ffcdd2;
+      }
+      .message-container.success {
+        background-color: #e8f5e9;
+        color: #388e3c;
+        border: 1px solid #c8e6c9;
+      }
+    </style>
   </head>
   <body>
     <div class="sign-up-with-email-container sign-in">
       <img src="../assets/image/logo.png" alt="" />
       <h1 class="sign-in-heading">Sign in</h1>
 
-      <form action="#" method="post">
+      <form id="loginForm">
         <div class="form-group">
           <label for="email">Email</label>
           <input type="email" id="email" required />
@@ -32,43 +58,52 @@
         <div class="form-group">
           <label
             for="password"
-            style="display: flex; justify-content: space-between; "
+            style="display: flex; justify-content: space-between"
             >Password <span><a href="#">Forget password?</a></span></label
           >
-          <input
-            type="password"
-            id="password"
-            required
-          />
+          <input type="password" id="password" required />
+        </div>
 
-        <button type="submit" class="btn create-button" onclick="event.preventDefault(); if(document.getElementById('email').value && document.getElementById('password').value.length >= 6) { location.href='../mainHome.html'; } else { alert('Please fill out the form correctly.'); return false; }">Sign In</button>
-        
-        </form>
+        <div
+          id="messageContainer"
+          class="message-container"
+          style="display: none"
+        ></div>
 
-        <div class="container">
+        <button type="submit" class="btn create-button">Sign In</button>
+      </form>
 
+      <div class="container">
         <div class="terms">
-            By signing in, you agree to the Goodreads 
-            <a href="#">Terms of Service</a> and 
-            <a href="#">Privacy Policy</a>
+          By signing in, you agree to the Goodreads
+          <a href="#">Terms of Service</a> and
+          <a href="#">Privacy Policy</a>
         </div>
 
         <div class="checkbox-wrapper">
-            <label class="checkbox-label">
-                <input style="width: 15px" type="checkbox">
-                Keep me signed in.
-                <a href="#">Details</a>
-            </label>
+          <label class="checkbox-label">
+            <input style="width: 15px" type="checkbox" id="keepSignedIn" />
+            Keep me signed in.
+            <a href="#">Details</a>
+          </label>
         </div>
 
         <div class="divider">
-            <span>New to Goodreads?</span>
+          <span>New to Goodreads?</span>
         </div>
 
-        <button class="btn btn-secondary" onclick="location.href='signUpWithPage.html'">Sign up</button>
-    </div>
+        <button
+          class="btn btn-secondary"
+          onclick="location.href='signUpWithPage.html'"
+        >
+          Sign up
+        </button>
+      </div>
     </div>
 
+    <!-- Load scripts in the correct order: userLogin.js must be loaded before loginHandler.js -->
+    <script src="../js/hooks/userLogin.js"></script>
     <script src="../js/formValidation.js"></script>
+    <script src="../js/loginHandler.js"></script>
   </body>
 </html>
