@@ -1,42 +1,134 @@
 <!-- All handy utility functions goes here -->
- <?php
-// Set headers for JSON response
+<?php
+/**
+ * Utility functions for the Goodreads Clone API
+ */
+
+/**
+ * Set headers for JSON responses
+ */
 function setJsonHeaders() {
-    // Allow from any origin (dev only!)
     header("Access-Control-Allow-Origin: *");
-    // for deployment change the cors from allowing all origins to the specific frontend domain
-    // header("Access-Control-Allow-Origin: https://frontenddomain.com");
-    header("Content-Type: application/json; charset=UTF-8");
-    header("Access-Control-Allow-Methods: POST, GET");
-    header("Access-Control-Max-Age: 3600");
-    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Content-Type: application/json");
+    
+    // Handle preflight OPTIONS requests
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit;
+    }
 }
 
-// Sanitize input data
-function sanitizeInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
-
-// Validate email format
-function validateEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL);
-}
-
-// Generate JSON response
+/**
+ * Create a standardized JSON response
+ *
+ * @param bool $success Whether the operation was successful
+ * @param string $message A message describing the result
+ * @param array $data Optional data to include in the response
+ * @return string JSON-encoded response
+ */
 function jsonResponse($success, $message, $data = []) {
     $response = [
-        "success" => $success,
-        "message" => $message
+        'success' => $success,
+        'message' => $message
     ];
     
     if (!empty($data)) {
-        $response["data"] = $data;
+        $response['data'] = $data;
     }
     
     return json_encode($response);
+}
+
+/**
+ * Sanitize user input to prevent XSS and other attacks
+ *
+ * @param string $input The input to sanitize
+ * @return string The sanitized input
+ */
+function sanitizeInput($input) {
+    if (is_string($input)) {
+        $input = trim($input);
+        $input = stripslashes($input);
+        $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+    }
+    return $input;
+}
+
+/**
+ * Validate that all required fields are present
+ *
+ * @param array $required_fields List of required field names
+ * @param array $data The data to validate
+ * @return array List of missing field names
+ */
+function validateRequiredFields($required_fields, $data) {
+    $missing = [];
+    foreach ($required_fields as $field) {
+        if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '')) {
+            $missing[] = $field;
+        }
+    }
+    return $missing;
+}
+
+/**
+ * Validate email format
+ *
+ * @param string $email The email to validate
+ * @return bool Whether the email is valid
+ */
+function validateEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+/**
+ * Get JSON data from request body
+ *
+ * @return array The decoded JSON data
+ */
+function getJsonInput() {
+    $json = file_get_contents("php://input");
+    return json_decode($json, true) ?? [];
+}
+
+/**
+ * Handle either form data or JSON input
+ * 
+ * @param array $required_fields List of required field names
+ * @return array The sanitized data
+ */
+function getRequestData($required_fields = []) {
+    // Check if the request has a JSON content type
+    $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    
+    if (strpos($contentType, 'application/json') !== false) {
+        // Handle JSON input
+        $data = getJsonInput();
+    } else {
+        // Handle form data
+        $data = $_POST;
+    }
+    
+    // Validate required fields if specified
+    if (!empty($required_fields)) {
+        $missing = validateRequiredFields($required_fields, $data);
+        if (!empty($missing)) {
+            http_response_code(400);
+            echo jsonResponse(false, "Missing required fields: " . implode(', ', $missing));
+            exit;
+        }
+    }
+    
+    // Sanitize all string values
+    foreach ($data as $key => $value) {
+        if (is_string($value)) {
+            $data[$key] = sanitizeInput($value);
+        }
+    }
+    
+    return $data;
 }
 
 // Check if user is logged in
@@ -58,17 +150,17 @@ function getCurrentUserId() {
 }
 
 // Validate required fields
-function validateRequiredFields($fields, $data) {
-    $missing = [];
+// function validateRequiredFields($fields, $data) {
+//     $missing = [];
     
-    foreach ($fields as $field) {
-        if (!isset($data[$field]) || empty($data[$field])) {
-            $missing[] = $field;
-        }
-    }
+//     foreach ($fields as $field) {
+//         if (!isset($data[$field]) || empty($data[$field])) {
+//             $missing[] = $field;
+//         }
+//     }
     
-    return $missing;
-}
+//     return $missing;
+// }
 
 /**
  * Check if current user is an admin
