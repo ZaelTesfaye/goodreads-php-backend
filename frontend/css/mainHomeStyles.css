@@ -127,6 +127,30 @@ body {
   font-size: 16px;
 }
 
+/* Add common styles for the logout button */
+.auth-links .logout {
+  color: #382110;
+  padding: 0 12px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.auth-links .logout:hover {
+  background-color: #382110;
+  color: white;
+  text-decoration: none;
+}
+
+/* Add greeting styles */
+.auth-links .user-greeting {
+  color: #382110;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+}
+
 /* Responsive styles for screens with max-width of 1190px */
 @media (max-width: 1190px) {
   .nav {
@@ -188,6 +212,31 @@ body {
     gap: 0;
   }
 }
+
+/* Add responsive styles for small screens */
+@media (max-width: 478px) {
+  /* For screens below 478px, reposition the auth links */
+  .auth-links {
+    display: flex;
+    justify-content: space-between; /* Space between elements */
+    width: 100%; /* Take full width */
+  }
+
+  /* Position the logout button to the far right */
+  .auth-links .sign-in.logout {
+    order: 1; /* Higher order puts it on the right */
+    margin-right: 0; /* Remove any right margin */
+    margin-left: auto; /* Push to the right */
+  }
+
+  /* Position the greeting to the left */
+  .auth-links .user-greeting {
+    order: 0; /* Lower order puts it on the left */
+    margin-left: 0; /* Remove any left margin */
+    margin-right: auto; /* Push to the left */
+  }
+}
+
 /* header styles end */
 
 /* Footer section styles */

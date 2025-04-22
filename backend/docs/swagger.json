@@ -253,8 +253,8 @@
     "/auth/logout.php": {
       "post": {
         "tags": ["auth"],
-        "summary": "Logs out current user",
-        "description": "Destroys the user session",
+        "summary": "Logs out the current user",
+        "description": "Destroys the user session and clears session data",
         "operationId": "logoutUser",
         "responses": {
           "200": {
@@ -271,6 +271,26 @@
                     "message": {
                       "type": "string",
                       "example": "Logout successful"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Logout failed: Internal server error"
                     }
                   }
                 }
