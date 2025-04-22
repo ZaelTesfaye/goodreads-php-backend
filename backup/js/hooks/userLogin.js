@@ -31,10 +31,15 @@ const createLoginHandler = () => {
     setUser(null);
 
     try {
+      console.log("Sending login request for:", email);
+
       const response = await fetch(
         "http://localhost/goodreads-php-backend/backend/auth/login.php",
         {
           method: "POST",
+          // The 'credentials: "include"' option is necessary to ensure that cookies are sent with the request.
+          // This is important for maintaining session state and allowing the server to recognize the user.
+          // credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -47,46 +52,28 @@ const createLoginHandler = () => {
         throw new Error("Network error: Failed to connect to server");
       }
 
+      // For debugging
       const responseText = await response.text();
-      let data;
+      console.log("Raw response:", responseText);
 
+      // Try to parse as JSON
+      let data;
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        throw new Error("Invalid response from server");
+        console.error("Failed to parse response as JSON:", e);
+        throw new Error(
+          "Invalid response from server: " + responseText.substring(0, 100)
+        );
       }
 
-      // Check for specific error conditions from the server
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error(
-            "Invalid credentials: Email or password is incorrect"
-          );
-        } else if (response.status === 400) {
-          throw new Error("Missing or invalid login details");
-        } else if (response.status === 404) {
-          throw new Error("Email address not found");
-        } else if (response.status === 500) {
-          throw new Error("Server error: Please try again later");
-        } else {
-          throw new Error(data.message || "Login failed");
-        }
+      console.log("Parsed response:", data);
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Login failed");
       }
 
-      if (!data.success) {
-        // More specific error handling based on message content
-        if (data.message.includes("Invalid credentials")) {
-          throw new Error(
-            "Invalid credentials: Email or password is incorrect"
-          );
-        } else if (data.message.includes("not found")) {
-          throw new Error("Email address not found");
-        } else {
-          throw new Error(data.message || "Login failed");
-        }
-      }
-
-      // Get user data from the response
+      // Get user data from the right place in the response
       const userData = data.data && data.data.user ? data.data.user : data.user;
 
       if (!userData) {
@@ -100,7 +87,8 @@ const createLoginHandler = () => {
         user: userData,
       };
     } catch (err) {
-      setError(err.message || "Failed to connect to server");
+      console.error("Login error:", err);
+      setError(err.message || "Network error: Failed to connect to server");
       return {
         success: false,
         message: err.message || "Failed to connect to server",

@@ -4,44 +4,33 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("loginForm");
   const messageContainer = document.getElementById("messageContainer");
 
+  // Debug check if userLogin.js is loaded
+  if (typeof createLoginHandler !== "function") {
+    showMessage(
+      "Error: Login functionality not loaded properly. Please refresh the page.",
+      "error"
+    );
+    console.error(
+      "createLoginHandler function not found. Check if userLogin.js is properly loaded."
+    );
+    return;
+  }
+
   // Handle form submission
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
+    console.log("Login form submitted");
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
     const submitButton = document.querySelector("button[type='submit']");
 
-    // Enhanced validation with specific error messages
-    const errors = [];
-
-    // Validate email
-    if (!email) {
-      errors.push("Email address is required");
-      emailInput.classList.add("is-invalid");
-    } else if (!isValidEmail(email)) {
-      errors.push("Please enter a valid email address");
-      emailInput.classList.add("is-invalid");
-    } else {
-      emailInput.classList.remove("is-invalid");
-    }
-
-    // Validate password
-    if (!password) {
-      errors.push("Password is required");
-      passwordInput.classList.add("is-invalid");
-    } else if (password.length < 6) {
-      errors.push("Password must be at least 6 characters long");
-      passwordInput.classList.add("is-invalid");
-    } else {
-      passwordInput.classList.remove("is-invalid");
-    }
-
-    // Show validation errors if any
-    if (errors.length > 0) {
-      showMessage(errors.join("<br>"), "error");
+    // Basic validation
+    if (!email || password.length < 6) {
+      showMessage(
+        "Please enter a valid email and password (at least 6 characters).",
+        "error"
+      );
       return;
     }
 
@@ -51,6 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
       messageContainer.textContent = "";
     }
 
+    console.log(`Attempting login for email: ${email}`);
+
     try {
       // Disable button during login attempt
       submitButton.disabled = true;
@@ -58,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Attempt login
       const result = await loginHandler.login(email, password);
+      console.log("Login result:", result);
 
       // Handle the response
       if (result.success) {
@@ -69,19 +61,13 @@ document.addEventListener("DOMContentLoaded", function () {
           window.location.replace("/frontend/mainHome.html");
         }, 1500);
       } else {
-        // Handle specific server error messages
-        if (result.message.includes("Invalid credentials")) {
-          showMessage("Login failed: Invalid email or password", "error");
-        } else if (result.message.includes("not found")) {
-          showMessage("Login failed: Email address not found", "error");
-        } else {
-          showMessage(
-            result.message || "Login failed. Please check your credentials.",
-            "error"
-          );
-        }
+        showMessage(
+          result.message || "Login failed. Please check your credentials.",
+          "error"
+        );
       }
     } catch (error) {
+      console.error("Login error:", error);
       showMessage("An unexpected error occurred. Please try again.", "error");
     } finally {
       // Re-enable button
@@ -89,12 +75,6 @@ document.addEventListener("DOMContentLoaded", function () {
       submitButton.textContent = "Sign In";
     }
   });
-
-  // Email validation function
-  function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
 
   // Subscribe to loading state changes
   loginHandler.on("loading", (isLoading) => {
@@ -111,30 +91,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // Subscribe to error state changes
   loginHandler.on("error", (error) => {
     if (error) {
-      // Parse specific error messages
-      if (error.includes("Invalid credentials")) {
-        showMessage("Invalid email or password. Please try again.", "error");
-      } else if (error.includes("not found")) {
-        showMessage(
-          "Email address not found. Please check your email.",
-          "error"
-        );
-      } else if (
-        error.includes("Failed to fetch") ||
-        error.includes("Network error")
-      ) {
-        showMessage(
-          "Network error: Unable to connect to the server. Please check your internet connection.",
-          "error"
-        );
-      } else {
-        showMessage(error, "error");
-      }
+      console.log("Error from login hook:", error);
+      showMessage(error, "error");
     }
   });
 
   // Subscribe to user state changes
   loginHandler.on("user", (user) => {
+    console.log("User from login hook:", user);
     if (user) {
       // Store user info in localStorage if "keep signed in" is checked
       const keepSignedIn = document.getElementById("keepSignedIn").checked;
@@ -152,11 +116,14 @@ document.addEventListener("DOMContentLoaded", function () {
 function showMessage(message, type) {
   const messageContainer = document.getElementById("messageContainer");
   if (!messageContainer) {
+    console.error("Message container not found");
     return;
   }
 
-  // Support HTML content for line breaks in error messages
-  messageContainer.innerHTML = message;
+  console.log(`Showing ${type} message: ${message}`);
+
+  // Clear any HTML content to prevent XSS
+  messageContainer.textContent = message;
   messageContainer.style.display = "block";
 
   // Add appropriate styling based on message type
