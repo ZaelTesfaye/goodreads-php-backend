@@ -64,10 +64,21 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show success message
         showMessage("Login successful! Redirecting...", "success");
 
-        // Redirect after successful login
+        // Store cookies in localStorage as backup
+        document.cookie.split(";").forEach((cookie) => {
+          const parts = cookie.split("=");
+          const name = parts[0].trim();
+          const value = parts[1];
+          if (name && value) {
+            localStorage.setItem("backup_cookie_" + name, value);
+          }
+        });
+
+        // Force a small delay to ensure cookies are saved before redirect
         setTimeout(() => {
-          window.location.replace("/frontend/mainHome.html");
-        }, 1500);
+          // Use location.href instead of replace to keep browser history
+          window.location.href = "/frontend/mainHome.html";
+        }, 500);
       } else {
         // Handle specific server error messages
         if (result.message.includes("Invalid credentials")) {

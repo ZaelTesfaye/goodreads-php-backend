@@ -1,18 +1,31 @@
 <?php
+// Configure PHP session settings BEFORE starting the session
+// These need to be set before any output is sent
+ini_set('session.cookie_lifetime', 86400); // 24 hours
+ini_set('session.gc_maxlifetime', 86400); // 24 hours
+ini_set('session.use_cookies', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_path', '/');
+ini_set('session.cookie_samesite', 'Lax');
+
 try {
     // Include database and utility functions
     include_once '../includes/db.php';
     include_once '../includes/utils.php';
 
-    // Set headers for JSON response
-    setJsonHeaders();
-
+    // Don't use setJsonHeaders() as it uses a wildcard origin
+    // Instead set custom CORS headers supporting credentials
+    header("Content-Type: application/json");
+    
     // Set CORS headers properly for credentials
     $allowedOrigins = [
         'http://127.0.0.1:5500',
         'http://localhost:5500',
         'http://localhost:3000',
-        'http://127.0.0.1:3000'
+        'http://127.0.0.1:3000',
+        'http://localhost',
+        'http://127.0.0.1'
     ];
 
     $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
@@ -20,13 +33,8 @@ try {
     if (in_array($origin, $allowedOrigins)) {
         header("Access-Control-Allow-Origin: $origin");
         header("Access-Control-Allow-Credentials: true");
-        header('Access-Control-Allow-Methods: POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
-    } else {
-        // Default for non-credential requests
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
     }
 
     // Handle preflight OPTIONS request
@@ -120,11 +128,28 @@ try {
        exit;
     }
 
-    // Start session and store user data
+    // Start session AFTER authentication success
     session_start();
+    
+    // Store user data in session
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_name'] = $user['name'];
     $_SESSION['user_role'] = $user['role'];
+    $_SESSION['last_activity'] = time(); // For session timeout tracking
+    
+    // Also create a custom cookie as a backup
+    setcookie(
+        'user_session', 
+        $user['id'], 
+        [
+            'expires' => time() + 86400,
+            'path' => '/',
+            'domain' => '',
+            'secure' => false,
+            'httponly' => false,
+            'samesite' => 'Lax'
+        ]
+    );
 
     // Prepare user data for response
     $userData = [
@@ -146,7 +171,9 @@ try {
 
 } catch (Exception $e) {
     // Discard any output that might have been generated
-    ob_end_clean();
+    if (ob_get_length()) {
+        ob_end_clean();
+    }
     
     // Set proper headers for JSON response
     header('Content-Type: application/json');
