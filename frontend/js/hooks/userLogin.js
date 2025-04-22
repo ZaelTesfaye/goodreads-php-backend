@@ -30,84 +30,143 @@ const createLoginHandler = () => {
     setError(null);
     setUser(null);
 
-    try {
-      const response = await fetch(
-        "http://localhost/goodreads-php-backend/backend/auth/login.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      // If fetch fails completely
-      if (!response) {
-        throw new Error("Network error: Failed to connect to server");
-      }
-
-      const responseText = await response.text();
-      let data;
-
+    return new Promise((resolve) => {
       try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        throw new Error("Invalid response from server");
+        // Create XHR object
+        const xhr = new XMLHttpRequest();
+
+        // Configure request
+        xhr.open(
+          "POST",
+          "http://127.0.0.1/goodreads-php-backend/backend/auth/login.php",
+          true
+        );
+        xhr.withCredentials = true; // Important: send cookies
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Set up response handler
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+
+              // Check for API-level error
+              if (!data.success) {
+                // More specific error handling based on message content
+                if (
+                  data.message &&
+                  data.message.includes("Invalid credentials")
+                ) {
+                  const error = new Error(
+                    "Invalid credentials: Email or password is incorrect"
+                  );
+                  setError(error.message);
+                  resolve({
+                    success: false,
+                    message: error.message,
+                  });
+                  return;
+                } else if (data.message && data.message.includes("not found")) {
+                  const error = new Error("Email address not found");
+                  setError(error.message);
+                  resolve({
+                    success: false,
+                    message: error.message,
+                  });
+                  return;
+                } else {
+                  const error = new Error(data.message || "Login failed");
+                  setError(error.message);
+                  resolve({
+                    success: false,
+                    message: error.message,
+                  });
+                  return;
+                }
+              }
+
+              // Get user data from the response
+              const userData =
+                data.data && data.data.user ? data.data.user : data.user;
+
+              if (!userData) {
+                const error = new Error("User data not found in response");
+                setError(error.message);
+                resolve({
+                  success: false,
+                  message: error.message,
+                });
+                return;
+              }
+
+              // Log cookies that were set
+              console.log("Cookies after login:", document.cookie);
+
+              // Set user data
+              setUser(userData);
+
+              // Return success
+              resolve({
+                success: true,
+                message: data.message || "Login successful",
+                user: userData,
+              });
+            } catch (e) {
+              const error = new Error(
+                "Invalid response from server: " + e.message
+              );
+              setError(error.message);
+              resolve({
+                success: false,
+                message: error.message,
+              });
+            }
+          } else {
+            // Handle HTTP error statuses
+            let errorMsg = "Login failed with status " + xhr.status;
+
+            if (xhr.status === 401) {
+              errorMsg = "Invalid credentials: Email or password is incorrect";
+            } else if (xhr.status === 400) {
+              errorMsg = "Missing or invalid login details";
+            } else if (xhr.status === 404) {
+              errorMsg = "Email address not found";
+            } else if (xhr.status === 500) {
+              errorMsg = "Server error: Please try again later";
+            }
+
+            const error = new Error(errorMsg);
+            setError(error.message);
+            resolve({
+              success: false,
+              message: error.message,
+            });
+          }
+          setLoading(false);
+        };
+
+        // Handle network errors
+        xhr.onerror = function () {
+          const error = new Error("Network error: Failed to connect to server");
+          setError(error.message);
+          resolve({
+            success: false,
+            message: error.message,
+          });
+          setLoading(false);
+        };
+
+        // Send the request with credentials
+        xhr.send(JSON.stringify({ email, password }));
+      } catch (err) {
+        setError(err.message || "Failed to connect to server");
+        resolve({
+          success: false,
+          message: err.message || "Failed to connect to server",
+        });
+        setLoading(false);
       }
-
-      // Check for specific error conditions from the server
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error(
-            "Invalid credentials: Email or password is incorrect"
-          );
-        } else if (response.status === 400) {
-          throw new Error("Missing or invalid login details");
-        } else if (response.status === 404) {
-          throw new Error("Email address not found");
-        } else if (response.status === 500) {
-          throw new Error("Server error: Please try again later");
-        } else {
-          throw new Error(data.message || "Login failed");
-        }
-      }
-
-      if (!data.success) {
-        // More specific error handling based on message content
-        if (data.message.includes("Invalid credentials")) {
-          throw new Error(
-            "Invalid credentials: Email or password is incorrect"
-          );
-        } else if (data.message.includes("not found")) {
-          throw new Error("Email address not found");
-        } else {
-          throw new Error(data.message || "Login failed");
-        }
-      }
-
-      // Get user data from the response
-      const userData = data.data && data.data.user ? data.data.user : data.user;
-
-      if (!userData) {
-        throw new Error("User data not found in response");
-      }
-
-      setUser(userData);
-      return {
-        success: true,
-        message: data.message || "Login successful",
-        user: userData,
-      };
-    } catch (err) {
-      setError(err.message || "Failed to connect to server");
-      return {
-        success: false,
-        message: err.message || "Failed to connect to server",
-      };
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   // Event subscription

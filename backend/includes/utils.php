@@ -4,16 +4,31 @@
  */
 
 /**
- * Set headers for JSON responses
+ * Set headers for JSON responses with proper CORS support for credentials
  */
 function setJsonHeaders() {
-    // Allow from any origin (dev only!)
-    header("Access-Control-Allow-Origin: *");
-    // for deployment change the cors from allowing all origins to the specific frontend domain
-    // header("Access-Control-Allow-Origin: https://frontenddomain.com");
-    header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    // Set content type
     header("Content-Type: application/json");
+    
+    // Define allowed origins
+    $allowedOrigins = [
+        'http://127.0.0.1:5500',
+        'http://localhost:5500',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost',
+        'http://127.0.0.1'
+    ];
+
+    $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+    // If the origin is allowed, set specific CORS headers
+    if (in_array($origin, $allowedOrigins)) {
+        header("Access-Control-Allow-Origin: $origin");
+        header("Access-Control-Allow-Credentials: true");
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    }
     
     // Handle preflight OPTIONS requests
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
