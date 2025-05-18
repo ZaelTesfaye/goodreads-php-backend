@@ -120,3 +120,40 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Select all like buttons for reviews
+  document.querySelectorAll(".book-review-action-btn[data-review-id]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const reviewId = btn.getAttribute("data-review-id");
+      const likeCountElem = btn.querySelector(".like-count");
+      let count = parseInt(likeCountElem.textContent.replace(/,/g, "")) || 0;
+      const liked = btn.classList.toggle("liked");
+      const action = liked ? "like" : "unlike";
+      fetch("http://localhost/goodreads-php-backend/backend/likes/review.php", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          review_id: reviewId,
+          action: action
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Update like count if backend returns it, else update locally
+            if (typeof data.like_count !== "undefined") {
+              likeCountElem.textContent = data.like_count;
+            } else {
+              likeCountElem.textContent = liked ? count + 1 : count - 1;
+            }
+            btn.querySelector(".like-label").textContent = liked ? "Liked" : "Like";
+          } else {
+            alert(data.message || "Error updating like.");
+            btn.classList.toggle("liked"); // revert UI if error
+          }
+        });
+    });
+  });
+});
