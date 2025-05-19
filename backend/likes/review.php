@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
         "success" => false,
         "message" => "User not authenticated."
     ]);
-    exit;
+    die("exit1");
 }
 
 $user_id = $_SESSION['user_id'];
