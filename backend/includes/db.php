@@ -6,7 +6,7 @@ class Database {
     private $host = 'localhost';
     private $db_name = 'goodreads_clone';
     private $username = 'root';
-    private $password = '';
+    private $password = '1122';
     private $conn;
 
     /**
