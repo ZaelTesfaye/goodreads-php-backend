@@ -269,7 +269,7 @@
                 </div>
                 <div class="author-meta">129 books · 258k followers</div>
               </div>
-              <button class="follow-button">Follow</button>
+              <button class="follow-button" id="author-follow-btn" data-user-id="10" aria-label="Follow or unfollow author">Follow</button>
             </div>
             <p class="author-bio">
               Kristin Hannah is the award-winning and bestselling author of more
@@ -570,14 +570,10 @@
                     class="book-review-avatar"
                   />
                   <div class="book-review-user-info">
-                    <div class="book-review-username">(ಠ_ಠ)</div>
-                    <div class="book-review-stats">
-                      <span>61 reviews</span>
-                      <span>841 followers</span>
-                    </div>
+                    <div class="book-review-username">Anonymous</div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="1">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -639,7 +635,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="2">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -700,7 +696,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="3">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -768,7 +764,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="4">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -830,7 +826,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="5">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -888,7 +884,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="6">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -948,7 +944,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="7">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -1013,7 +1009,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="8">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -1070,7 +1066,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="book-review-follow-btn">Follow</button>
+                <button class="book-review-follow-btn" data-user-id="9">Follow</button>
               </div>
 
               <div class="book-review-content">
@@ -1301,5 +1297,27 @@
     </footer>
     <!-- footer section end -->
     <script src="../js/script.js"></script>
+    <script src="../js/authStateHandler.js"></script>
+    <script src="../js/reviewFollowHandler.js"></script>
+    <script>
+      // Make all book-review-follow-btn buttons brown on page load
+      window.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.book-review-follow-btn').forEach(btn => {
+          btn.setAttribute('type', 'button');
+          btn.style.background = '#8B4513'; // brown
+          btn.style.color = '#fff';
+          btn.style.border = '1px solid #8B4513';
+          // Add click handler for instant UI feedback
+          btn.addEventListener('click', function() {
+            if (btn.textContent.trim().toLowerCase() !== 'following') {
+              btn.textContent = 'Following';
+              btn.style.background = '#8B4513';
+              btn.style.color = '#fff';
+              btn.style.border = '1px solid #8B4513';
+            }
+          });
+        });
+      });
+    </script>
   </body>
 </html>
